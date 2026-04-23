@@ -7,7 +7,12 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 )
+
+// Regex pattern to hide the thinking/reasoning from user
+var thinkRegex = regexp.MustCompile(`(?s)<think>.*?</think>`)
 
 func getLlamaURL() string {
 	url := os.Getenv("LLAMA_URL")
@@ -64,5 +69,21 @@ func AskLlama(prompt string) (string, error) {
 		return "", fmt.Errorf("bad response from llama-server: %w\nraw: %s", err, string(raw))
 	}
 
-	return result.Content, nil
+	// Strip and clean tags before returning
+	return cleanTags(result.Content), nil
+}
+
+func cleanTags(response string) string {
+	cleaned := thinkRegex.ReplaceAllString(response, "")
+
+	// Remove instruction tags
+	cleaned = strings.ReplaceAll(cleaned, "[/INST]", "")
+	cleaned = strings.ReplaceAll(cleaned, "[INST]", "")
+
+	// Remove sys tags
+	cleaned = strings.ReplaceAll(cleaned, "<<SYS>>", "")
+	cleaned = strings.ReplaceAll(cleaned, "<</SYS>>", "")
+
+	// trim any leftover whitespace or new lines
+	return strings.TrimSpace(cleaned)
 }

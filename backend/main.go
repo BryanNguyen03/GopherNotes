@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"GopherNotes/ai"
+	"GopherNotes/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -40,7 +41,7 @@ func main() {
 	// dummy test route
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
+			"message": "OK",
 		})
 	})
 
@@ -54,6 +55,11 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{"reply": reply})
 	})
+
+	// upload route
+	r.POST("/upload", handlers.UploadNote)
+	// chat route
+	r.POST("/chat", handlers.Chat)
 
 	r.Run(":8080")
 }
